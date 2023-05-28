@@ -1,12 +1,14 @@
-import functools
+import functools, psutil, requests
 from collections import OrderedDict
-import requests
 
-def cache(max_limit=1):
+def cache(max_limit=64):
     try:
         max_limit = int(max_limit)
     except ValueError as e:
         print(e)
+        exit(1)
+    if max_limit <= 0:
+        print("Cache limit can not be 0 or less.")
         exit(1)
     def internal(f):
         @functools.wraps(f)
@@ -29,29 +31,23 @@ def cache(max_limit=1):
         return deco
     return internal
 
-@cache(max_limit=input("Max cache limit:"))
+def process_memory(f):
+    @functools.wraps(f)
+    def internal(*args, **kwargs):
+        process = psutil.Process()
+        f(*args, **kwargs)
+        mem = process.memory_info().rss / (1024 ** 2)
+        print("Used memory: ", mem)
+        return mem
+    return internal
+
+@cache(max_limit=input("Max cache limit: "))
+@process_memory
 def fetch_url(url, first_n=50):
     """Fetch a given url"""
     res = requests.get(url)
-    # print(res)
     return res.content[:first_n] if first_n else res.content
 
-
-fetch_url('https://google.com')
-fetch_url('https://google.com')
-fetch_url('https://www.linkedin.com')
-fetch_url('https://ithillel.ua')
-fetch_url('https://ithillel.ua')
-fetch_url('https://refactoring.guru')
-fetch_url('https://open.spotify.com')
-fetch_url('https://youtube.com')
-fetch_url('https://youtube.com')
-fetch_url('https://youtube.com')
-fetch_url('https://youtube.com')
-fetch_url('https://open.spotify.com')
-
-
-
-
-
-
+fetch_url("https://google.com")
+fetch_url("https://stackoverflow.com/")
+fetch_url("https://google.com")
