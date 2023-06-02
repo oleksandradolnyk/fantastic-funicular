@@ -4,8 +4,7 @@ from collections import OrderedDict
 def cache(max_limit: int = 64):
     """max_limit argument must be an integer"""
     if max_limit <= 0:
-        print("Cache limit can not be 0 or less.")
-        exit(1)
+        raise Exception("Cache limit can not be 0 or less.")
     def internal(f):
         @functools.wraps(f)
         def deco(*args, **kwargs):
