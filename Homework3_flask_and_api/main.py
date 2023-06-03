@@ -1,11 +1,8 @@
-import csv, random, string
-from http import HTTPStatus
-
+import csv, random, string, requests
 import pandas as pd
-import requests
 
 from faker import Faker
-from flask import Flask, Response, request
+from flask import Flask
 from webargs import fields, validate
 from webargs.flaskparser import use_kwargs
 
@@ -59,7 +56,7 @@ def generate_students(counter):
             load_default="USD"
         ),
         "convert": fields.Int(
-            load_default=100
+            load_default=100, validate=validate.Range(min=1)
         )
     },
     location="query"
