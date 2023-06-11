@@ -5,6 +5,8 @@ from flask import Flask
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
+from database_handler import execute_query, formatting_data
+
 app = Flask(__name__)
 
 @app.route('/order_price')
@@ -19,8 +21,6 @@ def order_price(country):
         "Country",
         "OrderPrice",
     ]
-    con = sqlite3.connect("database/chinook.db")
-    cursor = con.cursor()
     query = """
             SELECT invoices.BillingCountry, SUM(invoice_items.UnitPrice * invoice_items.Quantity) as price
             FROM invoices
@@ -29,9 +29,8 @@ def order_price(country):
     if country:
         query += f"WHERE invoices.BillingCountry = '{country}'"
     query += "GROUP BY invoices.BillingCountry ORDER BY price DESC"
-    cursor.execute(query)
-    data = cursor.fetchall()
-    formatted_data = [dict(zip(keys, item)) for item in data]
+    data = execute_query(query)
+    formatted_data = formatting_data(keys, data)
     return formatted_data
 
 @app.route("/tracks")
@@ -59,8 +58,6 @@ def get_all_info_about_track(track):
         "CustomerEmail",
         "CustomerCountry"
     ]
-    con = sqlite3.connect("database/chinook.db")
-    cursor = con.cursor()
     query = """
             SELECT tracks.TrackId, tracks.Name, Composer, Title,
                    artists.Name AS Artist_Name,
@@ -83,9 +80,8 @@ def get_all_info_about_track(track):
     if track:
         query += f"WHERE tracks.TrackId='{track}'"
     query += "GROUP BY tracks.TrackId, tracks.Name, playlists.PlaylistId, FirstName, LastName"
-    cursor.execute(query)
-    data = cursor.fetchall()
-    formatted_data = [dict(zip(keys, item)) for item in data]
+    data = execute_query(query)
+    formatted_data = formatting_data(keys, data)
     return formatted_data
 
 @app.route("/in_hours")
@@ -94,8 +90,6 @@ def tracks_in_hours():
         "Album",
         "TotalHours",
     ]
-    con = sqlite3.connect("database/chinook.db")
-    cursor = con.cursor()
     query = """
             SELECT albums.Title, ROUND(SUM(Milliseconds) / (1000.0 * 60 * 60), 2) AS TotalHours
             FROM tracks
@@ -103,9 +97,8 @@ def tracks_in_hours():
             GROUP BY albums.Title
             ORDER BY TotalHours DESC
             """
-    cursor.execute(query)
-    data = cursor.fetchall()
-    formatted_data = [dict(zip(keys, item)) for item in data]
+    data = execute_query(query)
+    formatted_data = formatting_data(keys, data)
     return formatted_data
 
 if __name__ == '__main__':
