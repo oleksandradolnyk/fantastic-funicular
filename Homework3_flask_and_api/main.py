@@ -66,4 +66,5 @@ def get_bitcoin_value(currency, convert):
             currency_symbol = entity['symbol']
     return f'Value of {convert} BTC is {convert*rate} {currency_symbol} ({currency})'
 
-app.run(port=5001, debug=True)
+if __name__ == '__main__':
+    app.run(port=5001, debug=True)
